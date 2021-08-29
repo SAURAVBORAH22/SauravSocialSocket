@@ -24,15 +24,31 @@ const removeUser = (socketId) => { //socketId is the socket id
 
 //for more info on socket io see https://socket.io/docs/
 
+
+//function for getting the user
+const getUser = (userId) => {
+    return users.find((user) => user.userId === userId); //finding the user
+};
+
 //listen for connection
 io.on("connection", (socket) => {
     //when connection is made
     console.log('a user connected.'); //logs when a new user connects
+
     //after every connection , take userId and socketId from user
     socket.on('addUser', (userId) => {
         addUser(userId, socket.id); //add user in user array
         io.emit("getUsers", users); //emit users to all users
     });
+
+    //send and get message
+    socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+        const user = getUser(receiverId); //getting the user by senderId
+        io.to(user.socketId).emit("getMessage", { //emit the message to the user
+            senderId, //sender id
+            text, //message
+        });
+    })
 
     //disconnect function
     socket.on("disconnect", () => {
